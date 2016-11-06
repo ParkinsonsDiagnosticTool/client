@@ -1,10 +1,12 @@
 package com.blackberry.dhalam.pdt;
 
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 public class OptionActivity extends AppCompatActivity {
     Button learningMode;
@@ -15,6 +17,11 @@ public class OptionActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_option);
         getSupportActionBar().hide();
+
+        TextView logoText = (TextView) findViewById(R.id.logoText);
+        Typeface tf = Typeface.createFromAsset(this.getAssets(),
+                "zwodrei_bold_demo.ttf");
+        logoText.setTypeface(tf);
 
         learningMode = (Button) findViewById(R.id.learn);
         diagnosticMode = (Button) findViewById(R.id.diagnose);
