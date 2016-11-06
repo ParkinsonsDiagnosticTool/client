@@ -124,9 +124,9 @@ public class TestActivity extends AppCompatActivity implements SensorEventListen
         graph1.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.HORIZONTAL);
         graph1.getGridLabelRenderer().setGridColor(Color.WHITE);
         graph2.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.HORIZONTAL);
-        graph1.getGridLabelRenderer().setGridColor(Color.WHITE);
+        graph2.getGridLabelRenderer().setGridColor(Color.WHITE);
         graph3.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.HORIZONTAL);
-        graph1.getGridLabelRenderer().setGridColor(Color.WHITE);
+        graph3.getGridLabelRenderer().setGridColor(Color.WHITE);
 
 
 
