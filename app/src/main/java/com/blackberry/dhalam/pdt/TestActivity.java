@@ -285,7 +285,7 @@ public class TestActivity extends AppCompatActivity implements SensorEventListen
                         double answer = 1.0;
                         try {
                             JSONObject object = new JSONObject(responseData);
-                            answer = object.getDouble("Prediction");
+                            answer = object.getDouble("prediction");
                         } catch (JSONException ex) {
 
                         }
@@ -306,8 +306,14 @@ public class TestActivity extends AppCompatActivity implements SensorEventListen
 
                             }
                         });
-                        final AlertDialog dialog = builder.create();
-                        dialog.show();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                final AlertDialog dialog = builder.create();
+                                dialog.show();
+                            }
+                        });
+
                     }
 
 
