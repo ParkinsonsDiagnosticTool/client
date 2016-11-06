@@ -1,6 +1,8 @@
 package com.blackberry.dhalam.pdt;
 
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -10,13 +12,13 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
-import com.jjoe64.graphview.helper.StaticLabelsFormatter;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
@@ -24,6 +26,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -49,6 +52,11 @@ public class TestActivity extends AppCompatActivity implements SensorEventListen
     private float last_z;
     private long lastUpdate;
 
+    //url
+    private final String urlA = "http://ec2-35-162-139-63.us-west-2.compute.amazonaws.com/api/v1.0/predict";
+    private final String urlB = "http://ec2-35-162-139-63.us-west-2.compute.amazonaws.com/api/v1.0/dataset";
+    private boolean receive;
+
     //data
     private static final int SHAKE_THRESHOLD = 800;
     private String data;
@@ -72,6 +80,9 @@ public class TestActivity extends AppCompatActivity implements SensorEventListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test);
 
+        Intent intent = getIntent();
+        receive = intent.getBooleanExtra("receive",false);
+
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mAccelerometer = mSensorManager
                 .getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -83,6 +94,8 @@ public class TestActivity extends AppCompatActivity implements SensorEventListen
         lastUpdate = 0;
         data = "";
 
+
+        //create line series data
         mSeries1 = new LineGraphSeries<>();
         mSeries1.setColor(ContextCompat.getColor(TestActivity.this, R.color.line1));
 
@@ -90,45 +103,44 @@ public class TestActivity extends AppCompatActivity implements SensorEventListen
         mSeries2.setColor(ContextCompat.getColor(TestActivity.this, R.color.line2));
 
         mSeries3 = new LineGraphSeries<>();
-        mSeries3.setColor(ContextCompat.getColor(TestActivity.this, R.color.line3));
+        mSeries3.setColor(ContextCompat.getColor(TestActivity.this, R.color.line4));
 
-        mSeries4 = new LineGraphSeries<>();
-        mSeries4.setColor(ContextCompat.getColor(TestActivity.this, R.color.line4));
 
-        mSeries5 = new LineGraphSeries<>();
-        mSeries5.setColor(ContextCompat.getColor(TestActivity.this, R.color.line5));
-
+        //create graph1
         graph1 = (GraphView) findViewById(R.id.graph1);
         graph1.setTitle("X Axis");
+        graph1.setTitleColor(Color.WHITE);
         graph1.addSeries(mSeries1);
-        StaticLabelsFormatter staticLabelsFormatter1 = new StaticLabelsFormatter(graph1);
-        staticLabelsFormatter1.setHorizontalLabels(new String[] {"","","",""});
-        graph1.getGridLabelRenderer().setLabelFormatter(staticLabelsFormatter1);
+        GridLabelRenderer renderer1 = graph1.getGridLabelRenderer();
+        renderer1.setHorizontalLabelsVisible(false);
+        renderer1.setHighlightZeroLines(false);
+        renderer1.setVerticalLabelsColor(Color.WHITE);
+        renderer1.setGridStyle(GridLabelRenderer.GridStyle.HORIZONTAL);
+        renderer1.setGridColor(Color.WHITE);
 
-
-
+        //create graph2
         graph2 = (GraphView) findViewById(R.id.graph2);
         graph2.setTitle("Y Axis");
+        graph2.setTitleColor(Color.WHITE);
         graph2.addSeries(mSeries2);
-        StaticLabelsFormatter staticLabelsFormatter = new StaticLabelsFormatter(graph2);
-        staticLabelsFormatter.setHorizontalLabels(new String[] {"","","",""});
-        graph2.getGridLabelRenderer().setLabelFormatter(staticLabelsFormatter);
+        GridLabelRenderer renderer2 = graph2.getGridLabelRenderer();
+        renderer2.setHorizontalLabelsVisible(false);
+        renderer2.setHighlightZeroLines(false);
+        renderer2.setVerticalLabelsColor(Color.WHITE);
+        renderer2.setGridStyle(GridLabelRenderer.GridStyle.HORIZONTAL);
+        renderer2.setGridColor(Color.WHITE);
 
+        //create graph3
         graph3 = (GraphView) findViewById(R.id.graph3);
         graph3.setTitle("Z Axis");
+        graph3.setTitleColor(Color.WHITE);
         graph3.addSeries(mSeries3);
-        StaticLabelsFormatter staticLabelsFormatter3 = new StaticLabelsFormatter(graph3);
-        staticLabelsFormatter3.setHorizontalLabels(new String[] {"","","",""});
-        graph3.getGridLabelRenderer().setLabelFormatter(staticLabelsFormatter3);
-
-        graph1.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.HORIZONTAL);
-        graph1.getGridLabelRenderer().setGridColor(Color.WHITE);
-        graph2.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.HORIZONTAL);
-        graph2.getGridLabelRenderer().setGridColor(Color.WHITE);
-        graph3.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.HORIZONTAL);
-        graph3.getGridLabelRenderer().setGridColor(Color.WHITE);
-
-
+        GridLabelRenderer renderer3 = graph3.getGridLabelRenderer();
+        renderer3.setHorizontalLabelsVisible(false);
+        renderer3.setHighlightZeroLines(false);
+        renderer3.setVerticalLabelsColor(Color.WHITE);
+        renderer3.setGridStyle(GridLabelRenderer.GridStyle.HORIZONTAL);
+        renderer3.setGridColor(Color.WHITE);
 
 
 
@@ -232,7 +244,11 @@ public class TestActivity extends AppCompatActivity implements SensorEventListen
     }
     public void setupOkhttp(){
         // should be a singleton
-        OkHttpClient client = new OkHttpClient();
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        builder.readTimeout(0, TimeUnit.MILLISECONDS);
+
+        OkHttpClient client = builder.build();
+
         JSONObject output = new JSONObject();
 
         try{
@@ -240,9 +256,15 @@ public class TestActivity extends AppCompatActivity implements SensorEventListen
         } catch (JSONException ex){
 
         }
+        String url = "";
+        if (receive == true){
+            url = urlA;
+        } else {
+            url = urlB;
+        }
 
         Request request = new Request.Builder()
-                .url("http://ec2-35-162-139-63.us-west-2.compute.amazonaws.com/api/v1.0/predict")
+                .url(url)
                 .post(RequestBody.create(JSON,output.toString()))
                 .build();
 
@@ -259,6 +281,35 @@ public class TestActivity extends AppCompatActivity implements SensorEventListen
                     throw new IOException("Unexpected code " + response);
                 } else {
                     final String responseData = response.body().string();
+                    if (receive) {
+                        double answer = 1.0;
+                        try {
+                            JSONObject object = new JSONObject(responseData);
+                            answer = object.getDouble("Prediction");
+                        } catch (JSONException ex) {
+
+                        }
+
+                        //create alert dialog
+                        final AlertDialog.Builder builder = new AlertDialog.Builder(TestActivity.this);
+                        String message = "";
+                        if (answer == 1.0){
+                            message = "Positive Result for Parkinson's Disease";
+                        } else {
+                            message = "Negative Result for Parkinson's Disease";
+                        }
+                        builder.setTitle("Diagnostic Results");
+                        builder.setMessage(message);
+                        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+
+                            }
+                        });
+                        final AlertDialog dialog = builder.create();
+                        dialog.show();
+                    }
+
 
                 }
             }
